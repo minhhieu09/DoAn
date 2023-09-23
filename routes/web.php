@@ -1,18 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\StoreController;
-use App\Http\Controllers\MomoController;
-use App\Http\Controllers\VNPayController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ProductTypeController;
-use App\Http\Controllers\ProductColorController;
-use App\Http\Controllers\ProductSpecialController;
-use App\Http\Controllers\ProductComponentController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\StripeController;
-use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\MomoController;
+use App\Http\Controllers\ProductColorController;
+use App\Http\Controllers\ProductComponentController;
+use App\Http\Controllers\ProductSpecialController;
+use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\StoreController;
+use App\Http\Controllers\StripeController;
+use App\Http\Controllers\VNPayController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,33 +82,13 @@ Route::prefix('store')->group(function () {
         Route::post('create-payment', [StoreController::class, 'createPayment'])->name(STORE_CREATE_PAYMENT);
         Route::get('list-category', [StoreController::class, 'listCategory'])->name(STORE_LIST_CATEGORY);
         Route::get('{id}', [StoreController::class, 'detail'])->name(STORE_CART_DETAIL);
+        Route::post('payment-complete', [StoreController::class, 'paymentComplete'])->name('payment.complete');
     });
 
     Route::get('payment', function () {
        return view('store.payment');
     });
     Route::get('detail', [StoreController::class, 'detail'])->name(STORE_PRODUCT_DETAIL);
-
-    //Payment momo
-    Route::prefix('momo')->group(function () {
-        Route::get('atm', [MomoController::class, 'index'])->name(VIEW_PAYMENT_MOMO);
-        Route::post('atm', [MomoController::class, 'atm'])->name(CREATE_PAYMENT_MOMO);
-
-        //Webhook momo
-        Route::get('result', [MomoController::class, 'result'])->name(RESULT_PAYMENT_MOMO);
-    });
-
-    //Payment vnpay
-    Route::prefix('vnpay')->group(function () {
-        Route::get('atm', [VNPayController::class, 'atm']);
-        Route::post('atm', [VNPAYController::class, 'createPayment'])->name(CREATE_PAYMENT_VNPAY);
-        Route::get('result', [VNPayController::class, 'result'])->name(RESULT_PAYMENT_VNPAY);
-    });
-
-    //Payment stripe
-    Route::prefix('stripe')->group(function () {
-       Route::get('success', [StripeController::class, 'success']);
-    });
 
     Route::get('send', [StoreController::class, 'sendMail']);
 });

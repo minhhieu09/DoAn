@@ -260,6 +260,15 @@ strong{
     height: 40px;
     display: none;
 }
+#add-cart-denied{
+    position: fixed;
+    right: 0px;
+    top: 0;
+    background-color: red;
+    padding: 8px;
+    height: 40px;
+    display: none;
+}
 .don-gia{
     display: flex;
     justify-content: space-between;

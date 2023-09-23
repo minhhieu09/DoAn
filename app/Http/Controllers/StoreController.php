@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PaymentModel;
+use App\Models\ProductComponentModel;
 use App\Models\ProductRatingModel;
 use App\Models\SpecialModel;
 use App\Models\SpecialProductModel;
@@ -16,6 +18,7 @@ use App\Services\StoreService;
 use App\Services\StripeService;
 use App\Services\VnpayService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Services\ProductService;
@@ -83,7 +86,7 @@ class StoreController extends Controller
         $dataRequest = $request->all();
         $product = $this->productService->findId($dataRequest['id']);
         $component = $this->productComponentService->findId($dataRequest['component']);
-
+        if($component['amount'] == 0 ) return response()->json();
         $data = [
             'id'        => $component->id,
             'name'      => $product->name,
@@ -155,58 +158,6 @@ class StoreController extends Controller
         return response()->json(['data' => $memory]);
     }
 
-    public function createPayment(Request $request)
-    {
-        //Check login
-        if (!Auth::guard('web')->check()) {
-            return redirect()->to(route(STORE_LOGIN));
-        }
-
-        $dataRequest = $request->all();
-
-        //Check item
-        if (empty($dataRequest['component'])) {
-            return redirect()->to(route(STORE));
-        }
-
-        //Save payment to db
-        $paymentInfo = [];
-        foreach ($dataRequest['component'] as $key => $value) {
-            $component = $this->productComponentService->find('id', '=', $value)->first();
-            if ($component->amount < $dataRequest['amount'][$key]) {
-                return back()->with(['status' => 'fail', 'message' => 'Thanh toán thất bại do hết hàng']);
-            }
-
-            $paymentInfo[] = [
-                'component' => $value,
-                'amount'    => $dataRequest['amount'][$key],
-                'product_name' => $component->product->name,
-                'memory' => $component->memory,
-                'color' => $component->color->name,
-                'price' => $component->price,
-            ];
-        }
-
-        $data = [
-            'order_id'      => time(),
-            'customer_id'   => Auth::guard('web')->user()->id,
-            'payment_type'  => $dataRequest['payment_type'],
-            'total'         => $dataRequest['total'],
-            'payment_info'  => json_encode($paymentInfo)
-        ];
-        $this->paymentService->insert($data);
-
-        if ($dataRequest['payment_type'] == 'momo') {
-            $payUrl = $this->momoService->createPayment($data['order_id'], $dataRequest['total']);
-        } elseif ($dataRequest['payment_type'] == 'vnpay') {
-            $payUrl = $this->vnpayService->createPayment($data['order_id'], $dataRequest['total']);
-        } else {
-            $payUrl = $this->stripeService->createPayment($data['order_id'], $dataRequest['total']);
-        }
-
-        return redirect()->to($payUrl);
-    }
-
     public function listCategory(Request $request)
     {
         $dataRequest = $request->all();
@@ -252,5 +203,41 @@ class StoreController extends Controller
         ]);
 
         return redirect()->back()->with(['status' => 'success', 'message' => 'Bình luận thành công']);
+    }
+
+    public function paymentComplete(Request $request){
+        $completePayment = Session::get('cart');
+        $customer = Auth::guard('web')->user();
+        $total = 0;
+        $paymentInfo = [];
+        foreach($completePayment as $item) {
+            $paymentInfo[] = array(
+                'id' => $item['id'],
+                'name' => $item['name'],
+                'amount' => $item['amount'],
+                'color' => $item['color'],
+                'price' => $item['price'],
+                'memory'=> $item['memory'],
+            );
+            $total += $item['price'] * $item['amount'];
+            $productComponent = ProductComponentModel::find($item['id']);
+            ProductComponentModel::find($item['id'])->update([
+                'amount' => $productComponent->amount > $item['amount'] ? $productComponent->amount - $item['amount'] : 0,
+            ]);
+            if ($productComponent['amount'] == 0 ) return redirect()->back()->with(['status' => 'fail', 'message' => 'Sản phẩm đã hết']);
+        }
+        $data = [
+            'order_id' => time(),
+            'customer_id' => $customer['id'],
+            'payment_type' => 'cash',
+            'total' => $total,
+            'status' => 1,
+            'payment_info' => json_encode($paymentInfo),
+            'created_at' => Carbon::now(),
+            'update_at' => Carbon::now(),
+        ];
+        PaymentModel::create($data);
+        Session::forget('cart');
+        return redirect()->back()->with(['status' => 'success', 'message' => 'Thanh toán thành công']);
     }
 }

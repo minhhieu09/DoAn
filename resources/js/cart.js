@@ -72,8 +72,11 @@ $(document).ready(function () {
             },
             success: function (e) {
                 $('#scroll-giohang').html(showCart(e));
-
-                if (e) {
+                console.log(e.length);
+                if (e.length <= 0) {
+                    $("#add-cart-denied").fadeIn('slow').fadeOut('slow');
+                }
+                if (typeof e.length == 'undefined'){
                     $("#add-cart-effect").fadeIn('slow').fadeOut('slow');
                 }
             }

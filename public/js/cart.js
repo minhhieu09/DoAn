@@ -6849,8 +6849,13 @@ $(document).ready(function () {
       },
       success: function success(e) {
         $('#scroll-giohang').html(showCart(e));
+        console.log(e.length);
 
-        if (e) {
+        if (e.length <= 0) {
+          $("#add-cart-denied").fadeIn('slow').fadeOut('slow');
+        }
+
+        if (typeof e.length == 'undefined') {
           $("#add-cart-effect").fadeIn('slow').fadeOut('slow');
         }
       }

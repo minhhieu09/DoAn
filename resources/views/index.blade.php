@@ -129,7 +129,7 @@
                     <h6 class="mb-4">HỆ THỐNG CỬA HÀNG</h6>
                     <div><a href="">Địa chỉ: Số 16 Ngõ 58 Trần Bình, Mai Dịch, Cầu Giấy, Hà Nội</a></div>
                     <div><a href="">Số điện thoại: 0969705425</a></div>
-                    <div><a href="">Email: hungvumanh11o23@gmail.com</a></div>
+                    <div><a href="">Email: minhhieu9x9z@gmail.com</a></div>
 
                 </div>
             </div>
@@ -172,6 +172,11 @@
 <div id="add-cart-effect">
     <p>Đã thêm vào giỏ</p>
 </div>
+<!-- Thêm thất bại -->
+<div id="add-cart-denied">
+    <p>Sản phẩm đã hết vui lòng chọn sản phẩm khác</p>
+</div>
+
 
 {{-- Thanh công cụ trợ giúp --}}
 <div style="position: absolute;display: none" id="helper">
